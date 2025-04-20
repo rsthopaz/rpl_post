@@ -33,7 +33,7 @@ const App = () => {
     setCurrentUser(null);
   };
 
-  const handleAddPost = (text) => {
+  const handleAddPost = (text, parentId = null) => {
     if (text.trim() === "") return; // Pastikan teks tidak kosong
     const newPost = {
       id: Date.now(),
@@ -41,10 +41,16 @@ const App = () => {
       author: currentUser.username,
       profileImage: currentUser.profileImage,
       likes: [],
+      parentId,
+      replies: [],
+      depth: parentId ? posts.find((p) => p.id === parentId).depth + 1 : 0,
     };
     setPosts([...posts, newPost]); // Tambahkan postingan baru ke akhir array
   };
 
+  const handleAddReply = (parentId, text) => {
+    handleAddPost(text, parentId);
+  };
   const handleLike = (postId) => {
     setPosts(
       posts.map((post) =>
@@ -90,10 +96,12 @@ const App = () => {
             />
           </div>
           <PostList
-            posts={posts}
+            posts={posts.filter((post) => !post.parentId)}
+            allPosts={posts}
             onLike={handleLike}
             onDelete={handleDelete}
             onEdit={handleEdit}
+            onReply={handleAddReply}
             currentUser={currentUser}
           />
         </>
@@ -104,7 +112,9 @@ const App = () => {
       )}
       {!currentUser && (
         <button onClick={() => setShowRegister(!showRegister)}>
-          {showRegister ? "Sudah punya akun? Login" : "Belum punya akun? Register"}
+          {showRegister
+            ? "Sudah punya akun? Login"
+            : "Belum punya akun? Register"}
         </button>
       )}
     </div>

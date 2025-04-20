@@ -1,10 +1,10 @@
 import React, {useState} from "react";
 
-const Post = ({ post, onLike, onDelete, onEdit, currentUser }) => {
-  const hasLiked = post.likes.includes(currentUser.username);
-  const isAuthor = post.author === currentUser.username;
+const Post = ({ post, onLike, onDelete, onEdit, onReply, currentUser }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedText, setEditedText] = useState(post.text);
+  const [showReplyForm, setShowReplyForm] = useState(false);
+  const [replyText, setReplyText] = useState("");
 
   const handleEdit = () => {
     if(isEditing){
@@ -12,6 +12,15 @@ const Post = ({ post, onLike, onDelete, onEdit, currentUser }) => {
     }
     setIsEditing(!isEditing);
   }
+
+  const handleReplySubmit = (e) => {
+    e.preventDefault();
+    if (replyText.trim()) {
+      onReply(post.id, replyText);
+      setReplyText("");
+      setShowReplyForm(false);
+    }
+  };
 
   return (
     <div className="post">
@@ -33,23 +42,36 @@ const Post = ({ post, onLike, onDelete, onEdit, currentUser }) => {
       }
       {/* <p style={{maxWidth: "100%", wordWrap: "break-word"}}>{post.text}</p> */}
       {/* <small>Oleh: {post.author}</small> */}
-      <button
-        onClick={() => onLike(post.id)}
-        style={{ color: hasLiked ? "red" : "black" }}
-      >
-        {hasLiked ? "Unlike" : "Like"} ({post.likes.length})
-      </button>
-      
-      {
-      isAuthor && ( // Tampilkan tombol edit hanya jika pengguna adalah penulis
-        <button onClick={handleEdit}>
-          {isEditing ? "Simpan" : "Edit"}
+<div className="post-actions">
+        <button
+          onClick={() => onLike(post.id)}
+          style={{ color: post.likes.includes(currentUser.username) ? "red" : "black" }}
+        >
+          {post.likes.includes(currentUser.username) ? "Unlike" : "Like"} ({post.likes.length})
         </button>
+        
+        <button onClick={() => setShowReplyForm(!showReplyForm)}>
+          Reply
+        </button>
+
+        {post.author === currentUser.username && (
+          <>
+            <button onClick={handleEdit}>
+              {isEditing ? "Simpan" : "Edit"}
+            </button>
+            <button onClick={() => onDelete(post.id)}>Hapus</button>
+          </>
+        )}
+      </div>{showReplyForm && (
+        <form onSubmit={handleReplySubmit} className="reply-form">
+          <textarea
+            value={replyText}
+            onChange={(e) => setReplyText(e.target.value)}
+            placeholder="Write your reply..."
+          />
+          <button type="submit">Post Reply</button>
+        </form>
       )}
-      {isAuthor && ( // Tampilkan tombol hapus hanya jika pengguna adalah penulis
-        <button onClick={() => onDelete(post.id)}>Hapus</button>
-      )}
-      {/* <button onClick={() => onDelete(post.id)}>Delete</button> */}
     </div>
   );
 };
